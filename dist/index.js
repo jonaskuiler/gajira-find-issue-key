@@ -57,11 +57,15 @@ module.exports = class {
       return
     }
 
-		const foundIssues = await Promise.all(match.flatMap(async (issueKey) => {
+		const foundIssues = []
+
+		for (const foundIssue of match) {
 			const issue = await this.Jira.getIssue(issueKey)
 
-			return issue ? [issue.key] : []
-		}))
+			if (issue) {
+				foundIssues.push(issue.key)
+			}
+		}
 
 
 		return foundIssues
