@@ -32535,11 +32535,11 @@ async function exec () {
       console.log(`Saving ${firstIssue} to ${configPath}`)
 
       // Expose created issue's key as an output
-      core.setOutput('issue', result.issue)
-      core.setOutput('issues', result.issues)
+      core.setOutput('issue', firstIssue)
+      core.setOutput('issues', issues)
 
-      const yamledResult = YAML.stringify(result)
-      const extendedConfig = Object.assign({}, config, result)
+      const yamledResult = YAML.stringify(firstIssue)
+      const extendedConfig = Object.assign({}, config, firstIssue)
 
       fs.writeFileSync(configPath, YAML.stringify(extendedConfig))
 
