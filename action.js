@@ -51,13 +51,14 @@ module.exports = class {
       return
     }
 
-    for (const issueKey of match) {
-      const issue = await this.Jira.getIssue(issueKey)
+		const foundIssues = await Promise.all(match.flatMap(async (issueKey) => {
+			const issue = await this.Jira.getIssue(issueKey)
 
-      if (issue) {
-        return { issue: issue.key }
-      }
-    }
+			return issue ? [issue.key] : []
+		}))
+
+
+		return foundIssues
   }
 
   preprocessString (str) {

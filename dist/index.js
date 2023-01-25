@@ -57,13 +57,14 @@ module.exports = class {
       return
     }
 
-    for (const issueKey of match) {
-      const issue = await this.Jira.getIssue(issueKey)
+		const foundIssues = await Promise.all(match.flatMap(async (issueKey) => {
+			const issue = await this.Jira.getIssue(issueKey)
 
-      if (issue) {
-        return { issue: issue.key }
-      }
-    }
+			return issue ? [issue.key] : []
+		}))
+
+
+		return foundIssues
   }
 
   preprocessString (str) {
@@ -32514,19 +32515,28 @@ const config = YAML.parse(fs.readFileSync(configPath, 'utf8'))
 
 async function exec () {
   try {
-    const result = await new Action({
+    const issues = await new Action({
       githubEvent,
       argv: parseArgs(),
       config,
     }).execute()
 
-    if (result) {
-      console.log(`Detected issueKey: ${result.issue}`)
-      console.log(`Saving ${result.issue} to ${cliConfigPath}`)
-      console.log(`Saving ${result.issue} to ${configPath}`)
+    if (issues.length > 0) {
+
+			const [firstIssue] = issues
+
+			if (issues.length > 1) {
+				console.log(`Detected multiple issue keys: ${issues.join(", ")}`)
+			} else {
+				console.log(`Detected issue key: ${firstIssue}`)
+			}
+
+      console.log(`Saving ${firstIssue} to ${cliConfigPath}`)
+      console.log(`Saving ${firstIssue} to ${configPath}`)
 
       // Expose created issue's key as an output
       core.setOutput('issue', result.issue)
+      core.setOutput('issues', result.issues)
 
       const yamledResult = YAML.stringify(result)
       const extendedConfig = Object.assign({}, config, result)
